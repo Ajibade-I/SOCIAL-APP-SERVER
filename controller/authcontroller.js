@@ -79,6 +79,9 @@ const activateAccount = async (req, res) => {
   res.status(200).json({ succes: true, msg: "Account activated" });
 };
 
+//@Method:POST /auth/login
+//@Desc:To login a user
+//@Access:Private
 const Login = async (req, res) => {
   const error = await validateLogin(req.body);
   if (error) {
@@ -123,7 +126,7 @@ const Login = async (req, res) => {
   const token = jwt.sign(payload, process.env.JWT_PRIVATE_KEY);
   const oneDay = 24 * 60 * 60 * 1000;
 
-  res.cookie("accesToken", token, {
+  res.cookie("accessToken", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     signed: true,
@@ -196,7 +199,7 @@ const resetPassword = async (req, res, next) => {
 //@Access:Private
 
 const logOut = async (req, res, next) => {
-  res.cookie("accesToken", "Logout", {
+  res.cookie("accessToken", "Logout", {
     httpOnly: true,
     signed: true,
     expires: new Date(Date.now()),
