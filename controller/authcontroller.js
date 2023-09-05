@@ -5,7 +5,7 @@ const {
   validateSignup,
   validateLogin,
 } = require("../lib/validation/authvalidation");
-const { BadRequestError } = require("../lib/error");
+const { BadRequestError, Unauthorized } = require("../lib/error");
 const {
   sendAccountActivation,
 } = require("../lib/message/account-activation-message");
@@ -207,9 +207,24 @@ const logOut = async (req, res, next) => {
   res.status(200).json({ success: true, msg: "User logged out" });
 };
 
+//@Method:DELETE auth/delete
+//@Desc:logout
+//@Access:Private
+
+const deleteUser = async (req, res, next) => {
+  const { accessToken } = req.signedCookies;
+  if (!accessToken) {
+    throw new Unauthorized("User must be logged in to delete account");
+  }
+  const decoded = await jwt.verify(accessToken, process.env.JWT_PRIVATE_KEY);
+  req.user = await User.findByIdAndDelete(decoded._id);
+  res.status(200).json({ success: true, msg: "User deleted" });
+};
+
 module.exports.SignUp = SignUp;
 module.exports.Login = Login;
 module.exports.logOut = logOut;
 module.exports.activateAccount = activateAccount;
 module.exports.forgotPassword = forgotPassword;
 module.exports.resetPassword = resetPassword;
+module.exports.deleteUser = deleteUser;

@@ -2,12 +2,14 @@ require("dotenv").config();
 require("express-async-errors");
 const express = require("express");
 const { dbConnect } = require("./lib/dbconnect");
+const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 5400;
 const { notFound, errorHandler } = require("./lib/midlleware/error-middleware");
 const { authRoutes, homeRoutes, profileRoutes } = require("./routes");
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser(process.env.JWT_PRIVATE_KEY));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", homeRoutes);
