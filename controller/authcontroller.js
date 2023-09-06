@@ -18,18 +18,29 @@ const {
 //@Access:Public
 
 const SignUp = async (req, res, next) => {
+  //validate request
   const error = await validateSignup(req.body);
   if (error) {
     throw new BadRequestError(error);
   }
 
-  const { firstName, lastName, email, phoneNumber, password } = req.body;
+  const { firstName, lastName, profile, email, phoneNumber, password } =
+    req.body;
 
+  //check if email exists
   const userExists = await User.findOne({ email });
   if (userExists) {
     throw new BadRequestError("User already exists");
   }
 
+  //check if username exists
+  const { userName } = profile;
+  const usernameExists = await User.findOne({ userName });
+  if (usernameExists) {
+    throw new BadRequestError("Username has already been taken");
+  }
+
+  //check if phone exists
   const phoneExists = await User.findOne({ phoneNumber });
   if (phoneExists) {
     throw new BadRequestError("Phone number already exists");
@@ -41,6 +52,7 @@ const SignUp = async (req, res, next) => {
   const user = new User({
     firstName,
     lastName,
+    profile,
     email,
     phoneNumber,
     password: hashedpassword,
@@ -87,9 +99,14 @@ const Login = async (req, res) => {
   if (error) {
     throw new BadRequestError(error);
   }
-  const { email, password } = req.body;
+  const { email_or_userName, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({
+    $or: [
+      { email: email_or_userName },
+      { "profile.userName": email_or_userName },
+    ],
+  });
   if (!user) {
     throw new BadRequestError("Invalid email or password");
   }
@@ -193,6 +210,15 @@ const resetPassword = async (req, res, next) => {
 
   res.status(200).json({ success: true, message: "Account activated" });
 };
+
+//@Method:PUT auth/edit
+//@Desc:Edit account
+//@Access:private
+
+const editAccount=async(req,res,next)=>{
+  const error =
+}
+
 
 //@Method:DELETE auth/logout
 //@Desc:logout
