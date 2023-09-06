@@ -14,6 +14,28 @@ const userSchema = new mongoose.Schema(
       maxlength: 50,
       required: true,
     },
+    profile: {
+      userName: {
+        type: String,
+        minlength: 2,
+        maxlength: 25,
+        required: true,
+        unique: true,
+      },
+      bio: {
+        type: String,
+        minlength: 3,
+        maxlength: 250,
+      },
+      profileType: {
+        type: String,
+        enum: ["public", "private"],
+        default: "public",
+      },
+
+      followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Profile" }],
+      following: [{ type: mongoose.Schema.Types.ObjectId, ref: "Profile" }],
+    },
     phoneNumber: {
       type: String,
       trim: true,
@@ -35,6 +57,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
     AccountactivationToken: String,
     AccountTokenExpires: Date,
     passwordResetToken: String,

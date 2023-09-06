@@ -5,7 +5,7 @@ const { dbConnect } = require("./lib/dbconnect");
 const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 5400;
 const { notFound, errorHandler } = require("./lib/midlleware/error-middleware");
-const { authRoutes, homeRoutes, profileRoutes } = require("./routes");
+const { authRoutes, homeRoutes } = require("./routes");
 const app = express();
 
 app.use(express.json());
@@ -13,7 +13,6 @@ app.use(cookieParser(process.env.JWT_PRIVATE_KEY));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", homeRoutes);
-app.use("/api/profile", profileRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
