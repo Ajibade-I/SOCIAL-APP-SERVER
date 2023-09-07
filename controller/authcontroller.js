@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const bcryptjs = require("bcryptjs");
-const { User } = require("../model/User");
+const User = require("../model/User");
 const {
   validateSignup,
   validateLogin,
@@ -214,11 +214,6 @@ const resetPassword = async (req, res, next) => {
 //@Method:PUT auth/edit
 //@Desc:Edit account
 //@Access:private
-
-const editAccount=async(req,res,next)=>{
-  const error =
-}
-
 
 //@Method:DELETE auth/logout
 //@Desc:logout
