@@ -33,8 +33,8 @@ const userSchema = new mongoose.Schema(
         default: "public",
       },
 
-      followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Profile" }],
-      following: [{ type: mongoose.Schema.Types.ObjectId, ref: "Profile" }],
+      followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+      following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     },
     phoneNumber: {
       type: String,
@@ -68,4 +68,4 @@ const userSchema = new mongoose.Schema(
 
 const User = mongoose.model("User", userSchema);
 
-module.exports.User = User;
+module.exports = User;
