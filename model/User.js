@@ -36,6 +36,12 @@ const userSchema = new mongoose.Schema(
       followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
       following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     },
+    followRequest: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     phoneNumber: {
       type: String,
       trim: true,
