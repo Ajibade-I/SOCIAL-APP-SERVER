@@ -6,7 +6,6 @@ const {
   forgotPassword,
   resetPassword,
   logOut,
-
   deleteAccount,
   editAccount,
 } = require("../controller/authcontroller");
@@ -20,6 +19,6 @@ router.put("/edit", isLogin, editAccount);
 router.delete("/delete", isLogin, deleteAccount);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password?token=token", resetPassword);
-router.get("/activate-account?token=token", activateAccount);
-
+router.get("/activate-account", activateAccount);
+//"/activate-account?token=token"
 module.exports = router;

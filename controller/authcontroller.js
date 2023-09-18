@@ -66,11 +66,13 @@ const SignUp = async (req, res, next) => {
 
   //create activation token
   const token = await bcryptjs.hash(email.toString(), 10);
-  const thirtyMinutes = 30 * 60 * 1000;
+  const oneHour = 60 * 60 * 1000;
 
   //assign activation token to user
   user.AccountactivationToken = token;
-  user.AccountTokenExpires = new Date(Date.now() + thirtyMinutes);
+  user.AccountTokenExpires = new Date(Date.now() + oneHour);
+
+  await user.save();
 
   // send activation email
   await sendAccountActivation({ email, token });
@@ -88,16 +90,19 @@ const SignUp = async (req, res, next) => {
 const activateAccount = async (req, res) => {
   //find user
   const user = await User.findOne({
-    AccountactivationToken: req.url.token,
+    AccountactivationToken: req.query.token,
     AccountTokenExpires: { $gt: Date.now() },
   });
+
   if (!user) {
     throw new BadRequestError("Link has expired.PLease, request new link");
   }
+
   //reassign user properties
   user.isActivated = true;
   user.AccountactivationToken = undefined;
   user.AccountTokenExpires = undefined;
+
   await user.save();
 
   res.status(200).json({ succes: true, msg: "Account activated" });
@@ -147,13 +152,15 @@ const Login = async (req, res) => {
       //resend new activation token
       await sendAccountActivation({ email, token });
       res.json({
-        msg: "Account not activated. Click the link in your email to activate your account",
+        msg: "Account not activated. Click the link in your email to activate your account (expired)",
       });
+      return;
     }
 
     res.json({
       msg: "Account not activated. Click the link in your email to activate your account",
     });
+    return;
   }
 
   //create payload
@@ -260,12 +267,15 @@ const editAccount = async (req, res, next) => {
 
   let { firstName, lastName, phoneNumber, password } = req.body;
 
+  //find user
   const user = await User.findById(userId);
+  //check password
   const valid = await bcryptjs.compare(password, user.password);
   if (!valid) {
     throw new BadRequestError("Invalid password");
   }
 
+  //update the profile with the provided information
   if (firstName !== undefined) {
     user.firstName = firstName;
     await user.save();

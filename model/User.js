@@ -35,7 +35,14 @@ const userSchema = new mongoose.Schema(
 
       followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
       following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+      inbox: [
+        {
+          user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+          userName: { type: String },
+        },
+      ],
     },
+
     followRequest: [
       {
         type: mongoose.Schema.Types.ObjectId,

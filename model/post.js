@@ -15,6 +15,7 @@ const postSchema = new mongoose.Schema({
         ref: "User",
         required: true,
       },
+      userName: { type: String, required: true },
       message: { type: String, required: true },
       date: { type: Date, default: Date.now },
     },
