@@ -18,7 +18,7 @@ router.delete("/logout", logOut);
 router.put("/edit", isLogin, editAccount);
 router.delete("/delete", isLogin, deleteAccount);
 router.post("/forgot-password", forgotPassword);
-router.post("/reset-password?token=token", resetPassword);
+router.post("/reset-password", resetPassword);
 router.get("/activate-account", activateAccount);
-//"/activate-account?token=token"
+
 module.exports = router;

@@ -10,10 +10,15 @@ const { BadRequestError, Unauthorized } = require("../lib/error");
 const {
   sendAccountActivation,
 } = require("../lib/message/account-activation-message");
-const sendPasswordReset = require("../lib/message/password-reset-message");
+
 const {
   sendSuccessfulPasswordReset,
 } = require("../lib/message/password-reset-succesful");
+const {
+  updateChangedAuthProperties,
+  checkValidation,
+} = require("../lib/helpers/functions/authfunctions");
+const { sendPasswordReset } = require("../lib/message/password-reset-message");
 
 //@Method:POST /auth/signup
 //@Desc:To signup a user
@@ -62,8 +67,6 @@ const SignUp = async (req, res, next) => {
     password: hashedpassword,
   });
 
-  await user.save();
-
   //create activation token
   const token = await bcryptjs.hash(email.toString(), 10);
   const oneHour = 60 * 60 * 1000;
@@ -83,9 +86,9 @@ const SignUp = async (req, res, next) => {
   });
 };
 
-//@Method:GET /auth/activate-account?token=token
-//@Desc: Axtivate account
-//@Access:Public
+//@Method:GET /auth/activate-account
+//@Desc: Activate account
+//@Access:Private
 
 const activateAccount = async (req, res) => {
   //find user
@@ -138,28 +141,11 @@ const Login = async (req, res) => {
     throw new BadRequestError("Invalid email or password");
   }
 
+  const email = user.email;
   //check if user is activated
   if (!user.isActivated) {
-    //check if account activation token has expired
-    if (user.AccountTokenExpires < Date.now()) {
-      //if account token has expired create new token
-      const token = await bcryptjs.hash(email.toString(), 10);
-      const thirtyMinutes = 30 * 60 * 1000;
-
-      user.AccountactivationToken = token;
-      user.AccountTokenExpires = new Date(Date.now() + thirtyMinutes);
-
-      //resend new activation token
-      await sendAccountActivation({ email, token });
-      res.json({
-        msg: "Account not activated. Click the link in your email to activate your account (expired)",
-      });
-      return;
-    }
-
-    res.json({
-      msg: "Account not activated. Click the link in your email to activate your account",
-    });
+    const response = await checkValidation(user, email);
+    res.status(200).json(response);
     return;
   }
 
@@ -189,7 +175,7 @@ const Login = async (req, res) => {
 //@Desc: to request for password reset
 
 const forgotPassword = async (req, res, next) => {
-  const { email } = req.body;
+  let { email } = req.body;
   if (!email) {
     throw new BadRequestError("Invalid email");
   }
@@ -223,19 +209,20 @@ const forgotPassword = async (req, res, next) => {
 //@Access: Private
 
 const resetPassword = async (req, res, next) => {
-  const token = req.url.token;
-
   //find user with token and token expiration
   const user = await User.findOne({
-    passwordResetToken: token,
+    passwordResetToken: req.query.token,
     passwordResetExpired: { $gt: Date.now() },
   });
+
   if (!user) {
     throw new BadRequestError("Link has expired, Please request new link ");
   }
 
   const { newpassword } = req.body;
-
+  if (!newpassword) {
+    throw new BadRequestError("Invalid password");
+  }
   //encrypt new password
   const salt = await bcryptjs.genSalt(10);
   const hashedpassword = await bcryptjs.hash(newpassword, salt);
@@ -251,7 +238,7 @@ const resetPassword = async (req, res, next) => {
 
   await sendSuccessfulPasswordReset({ email, firstName });
 
-  res.status(200).json({ success: true, message: "Account activated" });
+  res.status(200).json({ success: true, message: "Password reset succesfull" });
 };
 
 //@Method:PUT auth/edit
@@ -268,28 +255,27 @@ const editAccount = async (req, res, next) => {
   let { firstName, lastName, phoneNumber, password } = req.body;
 
   //find user
-  const user = await User.findById(userId);
+  let user = await User.findById(userId);
   //check password
   const valid = await bcryptjs.compare(password, user.password);
   if (!valid) {
     throw new BadRequestError("Invalid password");
   }
 
-  //update the profile with the provided information
-  if (firstName !== undefined) {
-    user.firstName = firstName;
-    await user.save();
-  }
-  if (lastName !== undefined) {
-    user.lastName = lastName;
-    await user.save();
-  }
-  if (phoneNumber !== undefined) {
-    user.phoneNumber = phoneNumber;
-    await user.save();
-  }
+  user = updateChangedAuthProperties(user, {
+    firstName,
+    lastName,
+    phoneNumber,
+  });
 
-  res.status(200).json({ message: "Account updated succefully" });
+  const accountBody = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phoneNumber: user.phoneNumber,
+  };
+
+  await user.save();
+  res.status(200).json({ message: "Account updated succefully", accountBody });
 };
 
 //@Method:DELETE auth/logout

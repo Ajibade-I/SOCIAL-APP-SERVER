@@ -1,3 +1,6 @@
+const {
+  createModifiedHomePostObject,
+} = require("../lib/helpers/functions/homefunctions");
 const User = require("../model/User");
 const Post = require("../model/post");
 
@@ -22,22 +25,13 @@ const homePage = async (req, res) => {
     .sort({ dateCreated: -1 });
 
   //create a new modified post object with selected properties
-  const homePosts = posts.map((post) => {
-    const selectedProperties = new Post(post).toJSON();
-    selectedProperties.Likes = selectedProperties.likes.length;
-    selectedProperties.Comments = selectedProperties.comments.length;
-    selectedProperties.author = selectedProperties.author.profile;
-    delete selectedProperties.likes;
-    delete selectedProperties.comments;
-    delete selectedProperties.__v;
-    delete selectedProperties._id;
-    return selectedProperties;
-  });
+  const homePosts = createModifiedHomePostObject(posts);
+
   res.json({ msg: "WELCOME TO THE COMMUNITY", homePosts });
 };
 
-//@Method: GET user/home
-//@Desc: Homepage
+//@Method: POST users/home/search
+//@Desc: view posts by topic
 //@Acces: Public
 
 const viewPostsByTopic = async (req, res, next) => {
@@ -53,30 +47,21 @@ const viewPostsByTopic = async (req, res, next) => {
   const { title } = req.body;
 
   //find posts made by the user following by topic
-  const postByTitle = await Post.find({
+  const posts = await Post.find({
     author: { $in: followingId },
     title: title,
   })
     .populate("author", "profile.userName")
     .sort({ dateCreated: -1 });
-  if (!postByTitle) {
+  if (posts.length == 0) {
     res.status(404).json({ message: "There are no posts under this topic" });
     return;
   }
 
   //create new modified post object with selected properties
-  const modifiedPosts = postByTitle.map((post) => {
-    const selectedProperties = new Post(post).toJSON();
-    selectedProperties.Likes = selectedProperties.likes.length;
-    selectedProperties.Comments = selectedProperties.comments.length;
-    selectedProperties.author = selectedProperties.author.profile;
-    delete selectedProperties.likes;
-    delete selectedProperties.comments;
-    delete selectedProperties.__v;
-    delete selectedProperties._id;
-    return selectedProperties;
-  });
-  res.status(200).json(modifiedPosts);
+  const homePosts = createModifiedHomePostObject(posts);
+
+  res.status(200).json(homePosts);
 };
 module.exports.homePage = homePage;
 module.exports.viewPostsByTopic = viewPostsByTopic;

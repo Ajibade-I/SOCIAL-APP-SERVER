@@ -1,5 +1,13 @@
 const { BadRequestError } = require("../lib/error");
 const {
+  createModifiedMyPostObject,
+  updateChangedProfileProperties,
+  handleLikesMessage,
+  createModifiedViewPostObject,
+  acceptingOrDecliningFollowRequest,
+  followOrUnfollow,
+} = require("../lib/helpers/functions/profilefunctions");
+const {
   validateProfileEdit,
   validateRequestAction,
 } = require("../lib/validation/authvalidation");
@@ -18,7 +26,7 @@ const myProfile = async (req, res, next) => {
   }
 
   // create object containing user properties
-  const userProfile = {
+  const Your_Profile = {
     username: user.profile.userName,
     bio: user.profile.bio,
     followers: user.profile.followers.length,
@@ -28,7 +36,7 @@ const myProfile = async (req, res, next) => {
   //find users posts
   const posts = await Post.find({ author: userId });
   if (posts.length === 0) {
-    res.status(200).json({ userProfile, message: "You have no posts" });
+    res.status(200).json({ Your_Profile, message: "You have no posts" });
     return;
   }
   const postsLikes = await Post.find({ author: userId })
@@ -48,35 +56,16 @@ const myProfile = async (req, res, next) => {
     .map((postLike) => postLike.likes.map((like) => like.profile.userName))
     .flat();
 
-  //handle the likes message
-  let likesMessage;
-  if (likesUsernames.length === 1) {
-    likesMessage = `${likesUsernames[0]} liked your post`;
-  }
-  if (likesUsernames.length === 2) {
-    likesMessage = `${likesUsernames[0]} and ${likesUsernames[1]} liked your post`;
-  }
-  if (likesUsernames.length === 3) {
-    likesMessage = `${likesUsernames[0]}, ${likesUsernames[1]} and ${likesUsernames[2]} liked your post`;
-  }
-  if (likesUsernames.length > 3) {
-    likesMessage = `${likesUsernames[0]}, ${likesUsernames[1]} and ${
-      likesUsernames.length - 2
-    } others liked your post`;
-  }
+  let likesMessage = handleLikesMessage(likesUsernames);
 
   //create new post object containig selected properties
-  const Your_Posts = posts.map((post) => {
-    const selectedProperties = new Post(post).toJSON();
-    selectedProperties.likes = likesMessage;
-    selectedProperties.comments = postsComment;
-    delete selectedProperties._id;
-    delete selectedProperties.__v;
-    delete selectedProperties.author;
-    return selectedProperties;
-  });
+  const Your_Posts = createModifiedMyPostObject(
+    posts,
+    likesMessage,
+    postsComment
+  );
 
-  res.status(200).json({ userProfile, Your_Posts });
+  res.status(200).json({ Your_Profile, Your_Posts });
 };
 
 //@Method:POST /profile/follow
@@ -98,71 +87,11 @@ const followProfile = async (req, res, next) => {
     throw new BadRequestError("You cannot follow yourself");
   }
 
-  //user username
-  const followeeUsername = user.profile.userName;
+  const followeeId = user._id;
 
-  //check if the user is already following
-  const alreadyFollowing = await User.findOne({
-    "profile.followers": userId,
-  });
-  if (alreadyFollowing) {
-    //remove from user following
-    await User.findOneAndUpdate(
-      { _id: user._id },
-      { $pull: { "profile.followers": userId } }
-    );
+  const response = await followOrUnfollow(user, { userId, followeeId });
 
-    //unfollow
-    await User.findOneAndUpdate(
-      { _id: userId },
-      { $pull: { "profile.following": user._id } }
-    );
-
-    res.status(200).json({ message: `You unfollowed ${followeeUsername}` });
-    return;
-  }
-
-  //send followRequests for private profiles
-  if (user.profile.profileType == "private") {
-    //check if user already has follow request
-    const hasFollowRequest = await User.findOne({ followRequest: userId });
-    if (hasFollowRequest) {
-      //retract follow request
-      await User.findOneAndUpdate(
-        { _id: user._id },
-        { $pull: { followRequest: userId } }
-      );
-      res
-        .status(200)
-        .json({ message: `You have cancelled your follow request` });
-      return;
-    }
-    await User.findOneAndUpdate(
-      { _id: user._id },
-      { $push: { followRequest: userId } }
-    );
-
-    res
-      .status(200)
-      .json({ message: `You have sent ${userName} a follow request` });
-    return;
-  }
-
-  //Add to user followers
-  await User.findOneAndUpdate(
-    { _id: user._id },
-    { $push: { "profile.followers": userId } }
-  );
-
-  //Add to user following
-  await User.findOneAndUpdate(
-    { _id: userId },
-    { $push: { "profile.following": user._id } }
-  );
-  res.status(200).json({
-    sucess: true,
-    message: `You are now following ${followeeUsername}`,
-  });
+  res.status(200).json(response);
 };
 
 //@Method:GET /profile/following
@@ -263,16 +192,7 @@ const findProfile = async (req, res, next) => {
     }
   }
   //select required post properties
-  const userPosts = posts.map((post) => {
-    const selectedProperties = new Post(post).toJSON();
-    selectedProperties.Likes = selectedProperties.likes.length;
-    selectedProperties.Comments = selectedProperties.comments.length;
-    delete selectedProperties.author;
-    delete selectedProperties.comments;
-    delete selectedProperties.likes;
-    delete selectedProperties.__v;
-    return selectedProperties;
-  });
+  const userPosts = createModifiedViewPostObject(posts);
 
   res.status(200).json({ profile, userPosts });
 };
@@ -308,7 +228,7 @@ const viewFollowRequests = async (req, res, next) => {
     .json({ message: `You have follow requests from ${userFollowRequests}` });
 };
 
-//@Method:POst /profile/follow-requests/action
+//@Method:POST /profile/follow-requests/action
 //@Desc: manage follow requests
 //@Access: private
 
@@ -327,39 +247,14 @@ const followRequestAction = async (req, res, next) => {
   if (!user) {
     throw new BadRequestError("Username not found");
   }
+  const requesterId = user._id;
+  const response = await acceptingOrDecliningFollowRequest(action, {
+    userId,
+    requesterId,
+    username,
+  });
 
-  if (action === "accept") {
-    //add requester to user followers
-    await User.findOneAndUpdate(
-      { _id: userId },
-      { $push: { "profile.followers": user._id } }
-    );
-    //remove requester from user followrequests
-    await User.findOneAndUpdate(
-      { _id: userId },
-      { $pull: { followRequest: user._id } }
-    );
-    //add user to requester following
-    await User.findOneAndUpdate(
-      { _id: user._id },
-      { $push: { "profile.following": userId } }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: `You have accepted ${username}'s follow request`,
-    });
-  } else {
-    //remove requestee from user follow request
-    await User.findOneAndUpdate(
-      { _id: userId },
-      { $pull: { followRequest: user._id } }
-    );
-    res.status(200).json({
-      success: true,
-      message: `You have denied ${username}'s follow request`,
-    });
-  }
+  res.status(200).json(response);
 };
 
 //@Method:PUT /profile/edit
@@ -372,29 +267,18 @@ const editProfile = async (req, res, next) => {
   if (error) {
     throw new BadRequestError(error);
   }
-  const user = await User.findById({ _id: userId });
+  let user = await User.findById({ _id: userId });
 
   let { userName, bio, profileType } = req.body;
 
-  //check if username is provided
-  if (userName !== undefined) {
-    const usernameExists = await User.findOne({ "profile.userName": userName });
-    if (usernameExists) {
-      throw new BadRequestError("Username taken");
-    }
-    user.profile.userName = userName;
-    await user.save();
-  }
-  //check if bio is given
-  if (bio !== undefined) {
-    user.profile.bio = bio;
-    await user.save();
-  }
-  //check if profiletype is given
-  if (profileType !== undefined) {
-    user.profile.profileType = profileType;
-    await user.save();
-  }
+  //update the provided fields by the body
+  user = await updateChangedProfileProperties(user, {
+    userName,
+    bio,
+    profileType,
+  });
+
+  await user.save();
 
   res.json({ message: "Account updated succesfully" });
 };
