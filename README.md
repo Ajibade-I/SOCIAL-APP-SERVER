@@ -236,6 +236,16 @@ To change bio, use:
 - **Endpoint:** `/api/post/delete/:commentId`
 - **Access:** Private
 
+### Block a profile
+
+- **Method:** PUT
+- **Endpoint:** `/api/auth/block`
+- **Access:** Private
+
+```json
+
+```
+
 ### Forgot password
 
 - **Method:** POST

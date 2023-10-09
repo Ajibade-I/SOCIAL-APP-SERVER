@@ -75,6 +75,7 @@ const userSchema = new mongoose.Schema(
     AccountTokenExpires: Date,
     passwordResetToken: String,
     passwordResetExpired: Date,
+    blockedAccounts: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamp: true }
 );

@@ -204,6 +204,7 @@ const forgotPassword = async (req, res, next) => {
     message: "Check your email for password reset link",
   });
 };
+
 //@Method: GET auth/reset-password
 //@Desc: reset password
 //@Access: Private
@@ -313,6 +314,24 @@ const deleteAccount = async (req, res, next) => {
   res.status(200).json({ success: true, msg: "User deleted" });
 };
 
+//@Method:PUT /auth/block
+//@Desc:to block an account
+//@Access:Private
+
+const blockAccount = async (req, res, next) => {
+  const userId = req.user._id;
+  const { userName } = req.body;
+  if (!userName) {
+    throw new BadRequestError("username required");
+  }
+
+  const blocked = await User.findOne({ "profile.userName": userName });
+  const user = await User.findById(userId);
+  user.blockedAccounts.push(blocked._id);
+  await user.save();
+  res.status(200).json({ message: "User blocked" });
+};
+
 module.exports.SignUp = SignUp;
 module.exports.Login = Login;
 module.exports.logOut = logOut;
@@ -320,4 +339,5 @@ module.exports.activateAccount = activateAccount;
 module.exports.forgotPassword = forgotPassword;
 module.exports.resetPassword = resetPassword;
 module.exports.editAccount = editAccount;
+module.exports.blockAccount = blockAccount;
 module.exports.deleteAccount = deleteAccount;

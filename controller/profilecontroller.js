@@ -1,4 +1,4 @@
-const { BadRequestError } = require("../lib/error");
+const { BadRequestError, Unauthorized } = require("../lib/error");
 const {
   createModifiedMyPostObject,
   updateChangedProfileProperties,
@@ -31,6 +31,7 @@ const myProfile = async (req, res, next) => {
     bio: user.profile.bio,
     followers: user.profile.followers.length,
     following: user.profile.following.length,
+    inbox: user.profile.inbox.length,
   };
 
   //find users posts
@@ -80,6 +81,12 @@ const followProfile = async (req, res, next) => {
   const user = await User.findOne({ "profile.userName": userName });
   if (!user) {
     throw new BadRequestError("User does not exist");
+  }
+
+  //check if follower is blocked
+  const isBlocked = user.blockedAccounts.includes(userId);
+  if (isBlocked) {
+    throw new Unauthorized("You are blocked from following this account");
   }
 
   //prevent user from folowing own profile
@@ -160,6 +167,11 @@ const findProfile = async (req, res, next) => {
   const user = await User.findOne({ "profile.userName": userName });
   if (!user) {
     throw new BadRequestError("Invalid username");
+  }
+
+  const isBlocked = user.blockedAccounts.includes(userId);
+  if (isBlocked) {
+    throw new Unauthorized("You are blocked from viewing this account");
   }
 
   //find user posts

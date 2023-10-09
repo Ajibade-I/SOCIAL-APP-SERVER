@@ -19,6 +19,7 @@ const messageSchema = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
     },
   ],
+  admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 messageSchema.pre("save", function (next) {
