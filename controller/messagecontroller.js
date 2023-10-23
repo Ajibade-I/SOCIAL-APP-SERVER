@@ -14,6 +14,7 @@ const {
 } = require("../lib/validation/messagevalidation");
 const User = require("../model/User");
 const Message = require("../model/messages");
+const Post = require("../model/post");
 
 //@Method: POST /message/:userId
 //@Desc:to send a message to another profile
@@ -88,6 +89,7 @@ const message = async (req, res, next) => {
   const message = new Message({
     conversers: [userId, receiver._id],
     messages: [{ sender: userId, message: textMessage }],
+    admin: undefined,
   });
 
   await message.save();
@@ -155,7 +157,7 @@ const createGroup = async (req, res, next) => {
   }
 
   const { userNames } = req.body;
-  if (userNames.length < 3) {
+  if (userNames.length < 2) {
     throw new BadRequestError("Group cannot have less than 3 members");
   }
 
@@ -316,6 +318,31 @@ const addToGroup = async (req, res, next) => {
   res.status(200).json({ message: `${userName}, added to group` });
 };
 
+//@Method:DELETE /message/:groupId/exit
+//@Desc:to leave a group
+//@Access: Private
+
+const leaveGroup = async (req, res) => {
+  const userId = req.user._id;
+  const groupId = req.params.groupId;
+
+  const group = await Message.findById(groupId);
+  if (!group) {
+    throw new BadRequestError("Group not found");
+  }
+  if (!group.conversers.includes(userId)) {
+    throw new Unauthorized("You are not a member of this group");
+  }
+
+  const newConversers = group.conversers.filter(
+    (converser) => converser.toString() !== userId.toString()
+  );
+  group.conversers = newConversers;
+
+  await group.save();
+  res.status(200).json({ message: "You have exited this group" });
+};
+
 //@Method:PUt /message/:groupId/admin
 //@Desc:to make a user an admin
 //@Access: Private
@@ -334,6 +361,16 @@ const makeAnAdmin = async (req, res, next) => {
     userName
   );
 
+  if (group.admins.includes(userToManage._id)) {
+    const newAdmins = group.admins.pull(userToManage._id);
+
+    group.admins = newAdmins;
+    await group.save();
+
+    res.status(200).json({ message: `${userName}, is no longer an admin` });
+    return;
+  }
+
   const newAdmins = group.admins.concat(userToManage._id);
 
   group.admins = newAdmins;
@@ -341,10 +378,81 @@ const makeAnAdmin = async (req, res, next) => {
   res.status(200).json({ message: `${userName}, is now an admin` });
 };
 
+//@Method:PUt /message/:messageId/share
+//@Desc:to share a post
+//@Access: Private
+
+const sharePost = async (req, res, next) => {
+  const userId = req.user._id;
+  const messageId = req.params.messageId;
+  const { postId } = req.body;
+  if (!postId) {
+    throw new BadRequestError("Must provide post id");
+  }
+
+  const conversation = await Message.findById(messageId);
+  if (!conversation) {
+    throw new NotFoundError("Conversation not found");
+  }
+
+  const post = await Post.findById(postId).select("title content");
+  if (!post) {
+    throw new BadRequestError("Post not found");
+  }
+  if (!conversation.conversers.includes(userId)) {
+    throw new Unauthorized("You are not able to send this message");
+  }
+
+  const message = {
+    sender: userId,
+    message: post,
+  };
+
+  conversation.messages.push(message);
+
+  await conversation.save();
+
+  res.status(200).json({ message: "Post sent succesfully" });
+};
+
+//@Method:DELETE /message/:messageId/:conversationId
+//@Desc:to delete a message
+//@Access: Private
+
+const deleteMesaage = async (req, res) => {
+  const userId = req.user._id;
+  const messageId = req.params.messageId;
+  const conversationId = req.params.conversationId;
+
+  const conversation = await Message.findById(conversationId);
+  if (!conversation) {
+    throw new BadRequestError("Conversation not found");
+  }
+  if (!conversation.conversers.includes(userId)) {
+    throw new Unauthorized("You are not authorized to see this message");
+  }
+
+  const messageExists = conversation.messages.find(
+    (message) => message._id.toString() === messageId.toString()
+  );
+  if (!messageExists) {
+    throw new BadRequestError("Message not found");
+  }
+  await Message.findOneAndUpdate(
+    { _id: conversationId },
+    { $pull: { messages: { _id: messageId } } }
+  );
+
+  res.status(200).json({ message: "Message deleted succesfully" });
+};
+
 module.exports.message = message;
 module.exports.getMessages = getMessages;
 module.exports.createGroup = createGroup;
 module.exports.messageGroup = messageGroup;
+module.exports.sharePost = sharePost;
 module.exports.removeFromGroup = removeFromGroup;
 module.exports.addToGroup = addToGroup;
+module.exports.deleteMesaage = deleteMesaage;
 module.exports.makeAnAdmin = makeAnAdmin;
+module.exports.leaveGroup = leaveGroup;

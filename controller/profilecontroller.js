@@ -25,13 +25,25 @@ const myProfile = async (req, res, next) => {
     throw new BadRequestError("Login to view your profile");
   }
 
+  const inboxlength = user.profile.inbox.length;
+  let inboxMesage;
+  if (inboxlength === 0) {
+    inboxMesage = "Inbox empty";
+  }
+  if (inboxlength === 1) {
+    inboxMesage = "You have 1 unread message";
+  }
+  if (inboxlength > 1) {
+    inboxMesage = `You have ${inboxlength} unread messages`;
+  }
+
   // create object containing user properties
   const Your_Profile = {
     username: user.profile.userName,
     bio: user.profile.bio,
     followers: user.profile.followers.length,
     following: user.profile.following.length,
-    inbox: user.profile.inbox.length,
+    inbox: inboxMesage,
   };
 
   //find users posts
@@ -125,7 +137,7 @@ const viewFollowing = async (req, res, next) => {
     return;
   }
 
-  res.json({ message: `You are following${names_following}` });
+  res.json({ message: `You are following ${names_following}` });
 };
 
 //@Method:GET /profile/followers

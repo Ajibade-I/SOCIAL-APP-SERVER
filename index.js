@@ -13,6 +13,7 @@ const {
   profileRoutes,
   postRoutes,
   messageRoutes,
+  adminRoutes,
 } = require("./routes");
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(cookieParser(process.env.JWT_PRIVATE_KEY));
 app.use(helmet());
 app.use(compression({ level: 6, threshold: 0 }));
 
+app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", homeRoutes);
 app.use("/api/profile", profileRoutes);

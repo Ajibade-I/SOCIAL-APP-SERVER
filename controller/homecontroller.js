@@ -10,6 +10,7 @@ const Post = require("../model/post");
 
 const homePage = async (req, res) => {
   const userId = req.user._id;
+  const page = req.query.page;
 
   //find user and populate user following field
   const user = await User.findById({ _id: userId })
@@ -27,6 +28,15 @@ const homePage = async (req, res) => {
   //create a new modified post object with selected properties
   const homePosts = createModifiedHomePostObject(posts);
 
+  if (page) {
+    const startingIndex = (page - 1) * 10;
+    const lastIndex = startingIndex + 10;
+    const homePostsByPage = homePosts.slice(startingIndex, lastIndex);
+    res
+      .status(200)
+      .json({ message: "WELCOME TO THE COMMUNITY", homePostsByPage });
+    return;
+  }
   res.json({ msg: "WELCOME TO THE COMMUNITY", homePosts });
 };
 
@@ -36,7 +46,7 @@ const homePage = async (req, res) => {
 
 const viewPostsByTopic = async (req, res, next) => {
   const userId = req.user._id;
-
+  const page = req.query.page;
   //find user and populate following
   const user = await User.findById({ _id: userId })
     .populate("profile.following")
@@ -60,6 +70,15 @@ const viewPostsByTopic = async (req, res, next) => {
 
   //create new modified post object with selected properties
   const homePosts = createModifiedHomePostObject(posts);
+  if (page) {
+    const startingIndex = (page - 1) * 10;
+    const lastIndex = startingIndex + 10;
+    const homePostsByPage = homePosts.slice(startingIndex, lastIndex);
+    res
+      .status(200)
+      .json({ message: "WELCOME TO THE COMMUNITY", homePostsByPage });
+    return;
+  }
 
   res.status(200).json(homePosts);
 };

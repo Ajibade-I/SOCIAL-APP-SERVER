@@ -8,6 +8,9 @@ const {
   removeFromGroup,
   addToGroup,
   makeAnAdmin,
+  sharePost,
+  deleteMesaage,
+  leaveGroup,
 } = require("../controller/messagecontroller");
 const router = express.Router();
 
@@ -18,5 +21,8 @@ router.post("/:groupId/message", isLogin, messageGroup);
 router.put("/:groupId/remove", isLogin, removeFromGroup);
 router.put("/:groupId/add", isLogin, addToGroup);
 router.put("/:groupId/admin", isLogin, makeAnAdmin);
+router.put("/:messageId/share", isLogin, sharePost);
+router.delete("/:messageId/:conversationId", isLogin, deleteMesaage);
+router.delete("/:groupId/group/exit", isLogin, leaveGroup);
 
 module.exports = router;

@@ -193,6 +193,48 @@ To change bio, use:
 }
 ```
 
+### Remove from group
+
+- **Method:** PUT
+- **Endpoint:** `/message/:groupId/remove`
+- **Access:** Private
+
+```json
+{
+  "userName": "john"
+}
+```
+
+### Add to group
+
+- **Method:** PUT
+- **Endpoint:** `/message/:groupId/add`
+- **Access:** Private
+
+```json
+{
+  "userName": "john"
+}
+```
+
+### Leave group
+
+- **Method:** DELETE
+- **Endpoint:** `/message/:groupId/exit`
+- **Access:** Private
+
+### Make an admin
+
+- **Method:** PUT
+- **Endpoint:** `/message/:groupId/admin`
+- **Access:** Private
+
+```json
+{
+  "userName": "john"
+}
+```
+
 ### Make a post
 
 - **Method:** POST
@@ -205,6 +247,24 @@ To change bio, use:
   "content": "testing new post schema"
 }
 ```
+
+### Share a post
+
+- **Method:** PUT
+- **Endpoint:** `/message/:messageId/share`
+- **Access:** Private
+
+```json
+{
+  "postId": "64f925259db502d51c75d004"
+}
+```
+
+### Delete message
+
+- **Method:** DELETE
+- **Endpoint:** `/message/:messageId/:conversationId`
+- **Access:** Private
 
 ### Like a post/unlike a post
 
