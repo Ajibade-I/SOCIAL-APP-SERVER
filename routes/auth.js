@@ -10,7 +10,8 @@ const {
   editAccount,
   blockAccount,
 } = require("../controller/authcontroller");
-const isLogin = require("../lib/midlleware/auth-middleware");
+const { isLogin } = require("../lib/midlleware/auth-middleware");
+
 const router = express.Router();
 
 router.post("/signup", SignUp);

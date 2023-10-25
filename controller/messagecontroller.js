@@ -36,6 +36,9 @@ const message = async (req, res, next) => {
   if (!receiver) {
     throw new BadRequestError("User not found");
   }
+  if (receiver.accountStatus !== "suspended") {
+    throw new Unauthorized("this user has been suspended");
+  }
   const isBlocked = receiver.blockedAccounts.includes(userId);
   if (isBlocked) {
     throw new Unauthorized("You are blocked from messaging this account");

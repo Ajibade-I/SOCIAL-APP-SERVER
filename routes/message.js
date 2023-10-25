@@ -1,5 +1,5 @@
 const express = require("express");
-const isLogin = require("../lib/midlleware/auth-middleware");
+
 const {
   message,
   createGroup,
@@ -12,6 +12,7 @@ const {
   deleteMesaage,
   leaveGroup,
 } = require("../controller/messagecontroller");
+const { isLogin } = require("../lib/midlleware/auth-middleware");
 const router = express.Router();
 
 router.post("/:userId", isLogin, message);

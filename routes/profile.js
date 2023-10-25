@@ -1,5 +1,5 @@
 const express = require("express");
-const isLogin = require("../lib/midlleware/auth-middleware");
+
 const {
   followProfile,
   viewFollowing,
@@ -10,6 +10,7 @@ const {
   editProfile,
   myProfile,
 } = require("../controller/profilecontroller");
+const { isLogin } = require("../lib/midlleware/auth-middleware");
 const router = express.Router();
 
 router.get("/", isLogin, myProfile);

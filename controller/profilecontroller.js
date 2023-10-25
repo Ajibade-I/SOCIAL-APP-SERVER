@@ -25,6 +25,9 @@ const myProfile = async (req, res, next) => {
     throw new BadRequestError("Login to view your profile");
   }
 
+  if (user.accountStatus === "suspended") {
+    throw new Unauthorized("Your account has been suspended");
+  }
   const inboxlength = user.profile.inbox.length;
   let inboxMesage;
   if (inboxlength === 0) {
@@ -93,6 +96,9 @@ const followProfile = async (req, res, next) => {
   const user = await User.findOne({ "profile.userName": userName });
   if (!user) {
     throw new BadRequestError("User does not exist");
+  }
+  if (user.accountStatus !== "active") {
+    throw new Unauthorized("account has been suspended");
   }
 
   //check if follower is blocked
@@ -181,6 +187,9 @@ const findProfile = async (req, res, next) => {
     throw new BadRequestError("Invalid username");
   }
 
+  if (!user.accountStatus !== "active") {
+    throw new Unauthorized("This account has been suspended");
+  }
   const isBlocked = user.blockedAccounts.includes(userId);
   if (isBlocked) {
     throw new Unauthorized("You are blocked from viewing this account");

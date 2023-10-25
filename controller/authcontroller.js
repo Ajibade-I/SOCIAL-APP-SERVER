@@ -141,6 +141,11 @@ const Login = async (req, res) => {
     throw new BadRequestError("Invalid email or password");
   }
 
+  //check if account has been suspended
+  if(user.accountStatus!=="active"){
+    throw new Unauthorized('Your account has been suspended')
+  }
+
   const email = user.email;
   //check if user is activated
   if (!user.isActivated) {

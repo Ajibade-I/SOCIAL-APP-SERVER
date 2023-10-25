@@ -70,6 +70,16 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    accountStatus: {
+      type: String,
+      enum: ["suspended", "active"],
+      default: "active",
+    },
+    accountRole: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "user",
+    },
 
     AccountactivationToken: String,
     AccountTokenExpires: Date,

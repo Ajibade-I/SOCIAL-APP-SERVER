@@ -1,5 +1,5 @@
 const express = require("express");
-const isLogin = require("../lib/midlleware/auth-middleware");
+
 const {
   post,
   commentOnPost,
@@ -7,6 +7,7 @@ const {
   deletePost,
   deleteComment,
 } = require("../controller/postcontroller");
+const { isLogin } = require("../lib/midlleware/auth-middleware");
 
 const router = express.Router();
 
