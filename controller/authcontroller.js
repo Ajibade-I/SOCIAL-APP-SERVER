@@ -5,6 +5,7 @@ const {
   validateSignup,
   validateLogin,
   validateAccountEdit,
+  validatePasswordReset,
 } = require("../lib/validation/authvalidation");
 const { BadRequestError, Unauthorized } = require("../lib/error");
 const {
@@ -142,8 +143,8 @@ const Login = async (req, res) => {
   }
 
   //check if account has been suspended
-  if(user.accountStatus!=="active"){
-    throw new Unauthorized('Your account has been suspended')
+  if (user.accountStatus !== "active") {
+    throw new Unauthorized("Your account has been suspended");
   }
 
   const email = user.email;
@@ -247,6 +248,37 @@ const resetPassword = async (req, res, next) => {
   res.status(200).json({ success: true, message: "Password reset succesfull" });
 };
 
+//@Method: GET auth/reset-password
+//@Desc: reset password
+//@Access: Private
+
+const resetPasswordLoggedIn = async (req, res, next) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+
+  const error = await validatePasswordReset(req.body);
+  if (error) {
+    throw new BadRequestError(error);
+  }
+  const { oldPassword, newPassword, repeatPassword } = req.body;
+
+  const isValid = await bcryptjs.compare(oldPassword, user.password);
+  if (!isValid) {
+    throw new BadRequestError("incorrect password");
+  }
+  if (newPassword !== repeatPassword) {
+    throw new BadRequestError("Passwords do not match");
+  }
+
+  const salt = await bcryptjs.genSalt(10);
+  const hashedpassword = await bcryptjs.hash(newPassword, salt);
+  user.password = hashedpassword;
+
+  await user.save();
+
+  res.status(200).json({ success: true, message: "Password reset succesfull" });
+};
+
 //@Method:PUT auth/edit
 //@Desc:Edit account
 //@Access:private
@@ -343,6 +375,7 @@ module.exports.logOut = logOut;
 module.exports.activateAccount = activateAccount;
 module.exports.forgotPassword = forgotPassword;
 module.exports.resetPassword = resetPassword;
+module.exports.resetPasswordLoggedIn = resetPasswordLoggedIn;
 module.exports.editAccount = editAccount;
 module.exports.blockAccount = blockAccount;
 module.exports.deleteAccount = deleteAccount;

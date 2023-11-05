@@ -9,6 +9,7 @@ const {
   deleteAccount,
   editAccount,
   blockAccount,
+  resetPasswordLoggedIn,
 } = require("../controller/authcontroller");
 const { isLogin } = require("../lib/midlleware/auth-middleware");
 
@@ -21,7 +22,8 @@ router.put("/edit", isLogin, editAccount);
 router.put("/block", isLogin, blockAccount);
 router.delete("/delete", isLogin, deleteAccount);
 router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
+router.put("/reset-password", resetPassword);
+router.put("/reset-password/auth", isLogin, resetPasswordLoggedIn);
 router.get("/activate-account", activateAccount);
 
 module.exports = router;
