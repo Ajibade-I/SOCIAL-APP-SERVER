@@ -6,6 +6,10 @@ const { validateSignup } = require("../lib/validation/authvalidation");
 const User = require("../model/User");
 const bcryptjs = require("bcryptjs");
 const Post = require("../model/post");
+const {
+  succesResponse,
+  pagenation,
+} = require("../lib/helpers/utility-functions");
 
 //@Method: POST  /admin/signup
 //@Description : admin signup
@@ -67,24 +71,21 @@ const adminSignUp = async (req, res, next) => {
   // send activation email
   await sendAccountActivation({ email, token });
 
-  res.status(201).json({
-    success: true,
-    message: "Click the link in your email to activate your account",
-  });
+  return succesResponse(
+    res,
+    "Click the link in your email to activate your account"
+  );
 };
 
 const getAllUsers = async (req, res) => {
-  const users = await User.find().select("-password -inbox");
   const page = req.query.page;
-
+  let users;
+  users = await User.find().select("-password -inbox");
   if (page) {
-    const startingIndex = (page - 1) * 10;
-    const lastIndex = startingIndex + 10;
-    const usersByPage = users.slice(startingIndex, lastIndex);
-    res.status(200).json({ success: true, message: usersByPage });
-    return;
+    users = pagenation(page, users);
   }
   res.status(200).json({ success: true, message: users });
+  return succesResponse(res, "", users);
 };
 
 //@Method: PUT /admin/:userId/suspend
@@ -114,9 +115,9 @@ const suspendUser = async (req, res) => {
 
 const getSuspendedUsers = async (req, res) => {
   const page = req.query.page;
-
+  let suspendUsers;
   //find users with accountStatus = suspended
-  const suspendUsers = await User.find({ accountStatus: "suspended" }).select(
+  suspendUsers = await User.find({ accountStatus: "suspended" }).select(
     "-password -inbox"
   );
 
@@ -127,14 +128,10 @@ const getSuspendedUsers = async (req, res) => {
 
   //pagenation logic
   if (page) {
-    const startingIndex = (page - 1) * 10;
-    const lastIndex = startingIndex + 10;
-    const profilesByPage = suspendUsers.slice(startingIndex, lastIndex);
-    res.status(200).json({ success: true, message: profilesByPage });
-    return;
+    suspendUsers = pagenation(page, suspendUsers);
   }
 
-  res.status(200).json({ success: true, message: suspendUsers });
+  return succesResponse(res, "Suspended accounts", suspendUsers);
 };
 
 //@Method: POST /admin/:userId/activate
@@ -152,7 +149,7 @@ const activateUser = async (req, res) => {
   user.accountStatus = "active";
 
   await user.save();
-  res.status(200).json({ success: true, message: "User activate" });
+  return succesResponse(res, "User activate");
 };
 
 //@Method: POST /admin/:postId/delete
@@ -169,7 +166,7 @@ const deletePost = async (req, res) => {
 
   const post = await Post.findByIdAndDelete(postId);
 
-  res.status(200).json({ success: true, message: "Post deleted" });
+  return succesResponse(res, "Post deleted");
 };
 
 //@Method: POST  /admin/posts
@@ -177,19 +174,15 @@ const deletePost = async (req, res) => {
 //@Access: private
 
 const getAllPosts = async (req, res) => {
-  const posts = await Post.find();
-
   const page = req.query.page;
+  let posts;
+  posts = await Post.find();
 
   if (page) {
-    const startingIndex = (page - 1) * 10;
-    const lastIndex = startingIndex + 10;
-    const postsByPage = posts.slice(startingIndex, lastIndex);
-    res.status(200).json({ success: true, message: postsByPage });
-    return;
+    posts = pagenation(page, posts);
   }
 
-  res.status(200).json({ success: true, message: posts });
+  return succesResponse(res, "", posts);
 };
 
 module.exports.adminSignUp = adminSignUp;

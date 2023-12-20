@@ -15,6 +15,7 @@ const {
   messageRoutes,
   adminRoutes,
 } = require("./routes");
+const accesslogs = require("./lib/midlleware/accesslogs");
 const app = express();
 
 app.use(express.json());
@@ -23,12 +24,12 @@ app.use(cookieParser(process.env.JWT_PRIVATE_KEY));
 app.use(helmet());
 app.use(compression({ level: 6, threshold: 0 }));
 
-app.use("/api/admin", adminRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/users", homeRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/post", postRoutes);
-app.use("/api/message", messageRoutes);
+app.use("/api/admin", accesslogs, adminRoutes);
+app.use("/api/auth", accesslogs, authRoutes);
+app.use("/api/users", accesslogs, homeRoutes);
+app.use("/api/profile", accesslogs, profileRoutes);
+app.use("/api/post", accesslogs, postRoutes);
+app.use("/api/message", accesslogs, messageRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

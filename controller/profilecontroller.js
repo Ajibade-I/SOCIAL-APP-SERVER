@@ -7,6 +7,7 @@ const {
   acceptingOrDecliningFollowRequest,
   followOrUnfollow,
 } = require("../lib/helpers/functions/profilefunctions");
+const { succesResponse } = require("../lib/helpers/utility-functions");
 const {
   validateProfileEdit,
   validateRequestAction,
@@ -182,14 +183,16 @@ const findProfile = async (req, res, next) => {
   const { userName } = req.body;
 
   //find user
-  const user = await User.findOne({ "profile.userName": userName });
+  const user = await User.findOne({
+    "profile.userName": { $regex: new RegExp(userName, "i") },
+  }); 
   if (!user) {
     throw new BadRequestError("Invalid username");
   }
 
-  if (!user.accountStatus !== "active") {
-    throw new Unauthorized("This account has been suspended");
-  }
+  // if (!user.accountStatus !== "active") {
+  //   throw new Unauthorized("This account has been suspended");
+  // }
   const isBlocked = user.blockedAccounts.includes(userId);
   if (isBlocked) {
     throw new Unauthorized("You are blocked from viewing this account");
@@ -227,7 +230,7 @@ const findProfile = async (req, res, next) => {
   //select required post properties
   const userPosts = createModifiedViewPostObject(posts);
 
-  res.status(200).json({ profile, userPosts });
+  return succesResponse(res, "", [profile, userPosts]);
 };
 
 //@Method:GET /profile/follow-requests
@@ -313,7 +316,7 @@ const editProfile = async (req, res, next) => {
 
   await user.save();
 
-  res.json({ message: "Account updated succesfully" });
+  return succesResponse(res, "Account updated succesfully");
 };
 
 module.exports.myProfile = myProfile;

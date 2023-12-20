@@ -20,6 +20,7 @@ const {
   checkValidation,
 } = require("../lib/helpers/functions/authfunctions");
 const { sendPasswordReset } = require("../lib/message/password-reset-message");
+const { succesResponse } = require("../lib/helpers/utility-functions");
 
 //@Method:POST /auth/signup
 //@Desc:To signup a user
@@ -109,7 +110,7 @@ const activateAccount = async (req, res) => {
 
   await user.save();
 
-  res.status(200).json({ succes: true, msg: "Account activated" });
+  return succesResponse(res, "Account activated");
 };
 
 //@Method:POST /auth/login
@@ -173,7 +174,7 @@ const Login = async (req, res) => {
     expires: new Date(Date.now() + oneDay),
   });
 
-  res.status(200).json({ success: true, message: "Login successful" });
+  return succesResponse(res, "Login successfull");
 };
 
 //@Method:POST auth/forgot-password
@@ -313,7 +314,8 @@ const editAccount = async (req, res, next) => {
   };
 
   await user.save();
-  res.status(200).json({ message: "Account updated succefully", accountBody });
+  return succesResponse(res,"Account updated succefully", accountBody)
+
 };
 
 //@Method:DELETE auth/logout
@@ -327,7 +329,8 @@ const logOut = async (req, res, next) => {
     signed: true,
     expires: new Date(Date.now()),
   });
-  res.status(200).json({ success: true, msg: "User logged out" });
+  return succesResponse(res,"logged out")
+ 
 };
 
 //@Method:DELETE auth/delete
@@ -348,7 +351,8 @@ const deleteAccount = async (req, res, next) => {
 
   //find and delete user
   req.user = await User.findByIdAndDelete(decoded._id);
-  res.status(200).json({ success: true, msg: "User deleted" });
+  return succesResponse(res,"User deleted")
+ 
 };
 
 //@Method:PUT /auth/block
@@ -366,7 +370,8 @@ const blockAccount = async (req, res, next) => {
   const user = await User.findById(userId);
   user.blockedAccounts.push(blocked._id);
   await user.save();
-  res.status(200).json({ message: "User blocked" });
+ return succesResponse(res,"User blocked")
+ 
 };
 
 module.exports.SignUp = SignUp;

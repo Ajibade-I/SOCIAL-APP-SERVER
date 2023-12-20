@@ -1,6 +1,11 @@
+const { NotFoundError } = require("../lib/error");
 const {
   createModifiedHomePostObject,
 } = require("../lib/helpers/functions/homefunctions");
+const {
+  succesResponse,
+  pagenation,
+} = require("../lib/helpers/utility-functions");
 const User = require("../model/User");
 const Post = require("../model/post");
 
@@ -21,23 +26,17 @@ const homePage = async (req, res) => {
   const followingId = user.profile.following.map((user) => user._id);
 
   //find posts made by user following
-  const posts = await Post.find({ author: { $in: followingId } })
+  let posts;
+  posts = await Post.find({ author: { $in: followingId } })
     .populate("author", "profile.userName")
     .sort({ dateCreated: -1 });
 
   //create a new modified post object with selected properties
-  const homePosts = createModifiedHomePostObject(posts);
-
+  posts = createModifiedHomePostObject(posts);
   if (page) {
-    const startingIndex = (page - 1) * 10;
-    const lastIndex = startingIndex + 10;
-    const homePostsByPage = homePosts.slice(startingIndex, lastIndex);
-    res
-      .status(200)
-      .json({ message: "WELCOME TO THE COMMUNITY", homePostsByPage });
-    return;
+    posts = pagenation(page, posts);
   }
-  res.json({ msg: "WELCOME TO THE COMMUNITY", homePosts });
+  return succesResponse(res, "WELCOME TO THE COMMUNITY", posts);
 };
 
 //@Method: POST users/home/search
@@ -47,6 +46,7 @@ const homePage = async (req, res) => {
 const viewPostsByTopic = async (req, res, next) => {
   const userId = req.user._id;
   const page = req.query.page;
+
   //find user and populate following
   const user = await User.findById({ _id: userId })
     .populate("profile.following")
@@ -57,30 +57,24 @@ const viewPostsByTopic = async (req, res, next) => {
   const { title } = req.body;
 
   //find posts made by the user following by topic
-  const posts = await Post.find({
+  let posts;
+  posts = await Post.find({
     author: { $in: followingId },
-    title: title,
+    title: { $regex: new RegExp(title, "i") },
   })
     .populate("author", "profile.userName")
     .sort({ dateCreated: -1 });
+
   if (posts.length == 0) {
-    res.status(404).json({ message: "There are no posts under this topic" });
-    return;
+    throw new NotFoundError("Post not found");
   }
 
   //create new modified post object with selected properties
-  const homePosts = createModifiedHomePostObject(posts);
+  posts = createModifiedHomePostObject(posts);
   if (page) {
-    const startingIndex = (page - 1) * 10;
-    const lastIndex = startingIndex + 10;
-    const homePostsByPage = homePosts.slice(startingIndex, lastIndex);
-    res
-      .status(200)
-      .json({ message: "WELCOME TO THE COMMUNITY", homePostsByPage });
-    return;
+    posts = pagenation(page, posts);
   }
-
-  res.status(200).json(homePosts);
+  return succesResponse(res, "WELCOME TO THE COMMUNITY", posts);
 };
 module.exports.homePage = homePage;
 module.exports.viewPostsByTopic = viewPostsByTopic;
