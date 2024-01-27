@@ -33,5 +33,10 @@ app.use("/api/message", accesslogs, messageRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+// index.js
+module.exports = (req, res) => {
+  res.status(200).send("Hello, Vercel!");
+};
+
 dbConnect();
 app.listen(port, () => console.log(`Server listening on port ${port}....`));
