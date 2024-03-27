@@ -314,8 +314,7 @@ const editAccount = async (req, res, next) => {
   };
 
   await user.save();
-  return succesResponse(res,"Account updated succefully", accountBody)
-
+  return succesResponse(res, "Account updated succefully", accountBody);
 };
 
 //@Method:DELETE auth/logout
@@ -329,8 +328,7 @@ const logOut = async (req, res, next) => {
     signed: true,
     expires: new Date(Date.now()),
   });
-  return succesResponse(res,"logged out")
- 
+  return succesResponse(res, "logged out");
 };
 
 //@Method:DELETE auth/delete
@@ -351,8 +349,7 @@ const deleteAccount = async (req, res, next) => {
 
   //find and delete user
   req.user = await User.findByIdAndDelete(decoded._id);
-  return succesResponse(res,"User deleted")
- 
+  return succesResponse(res, "User deleted");
 };
 
 //@Method:PUT /auth/block
@@ -370,8 +367,7 @@ const blockAccount = async (req, res, next) => {
   const user = await User.findById(userId);
   user.blockedAccounts.push(blocked._id);
   await user.save();
- return succesResponse(res,"User blocked")
- 
+  return succesResponse(res, "User blocked");
 };
 
 module.exports.SignUp = SignUp;
