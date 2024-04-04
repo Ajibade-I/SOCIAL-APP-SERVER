@@ -35,7 +35,7 @@ app.use(errorHandler);
 
 // index.js
 module.exports = (req, res) => {
-  res.status(200).send("Hello, Vercel!");
+  res.status(200).send("Welcome to the server!");
 };
 
 dbConnect();

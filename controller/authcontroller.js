@@ -81,7 +81,6 @@ const SignUp = async (req, res, next) => {
 
   // send activation email
   await sendAccountActivation({ email, token });
-
   res.status(201).json({
     success: true,
     message: "Click the link in your email to activate your account",
