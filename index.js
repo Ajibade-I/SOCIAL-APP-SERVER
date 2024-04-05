@@ -6,6 +6,8 @@ const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const compression = require("compression");
 const port = process.env.PORT || 5400;
+const path = require("path");
+
 const { notFound, errorHandler } = require("./lib/midlleware/error-middleware");
 const {
   authRoutes,
@@ -23,6 +25,8 @@ app.use(cookieParser(process.env.JWT_PRIVATE_KEY));
 
 app.use(helmet());
 app.use(compression({ level: 6, threshold: 0 }));
+
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/admin", accesslogs, adminRoutes);
 app.use("/api/auth", accesslogs, authRoutes);
