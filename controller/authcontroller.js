@@ -249,7 +249,7 @@ const resetPassword = async (req, res, next) => {
 };
 
 //@Method: GET auth/reset-password
-//@Desc: reset password
+//@Desc: reset password when logged in
 //@Access: Private
 
 const resetPasswordLoggedIn = async (req, res, next) => {
@@ -276,7 +276,9 @@ const resetPasswordLoggedIn = async (req, res, next) => {
 
   await user.save();
 
-  res.status(200).json({ success: true, message: "Password reset succesfull" });
+  res
+    .status(200)
+    .json({ success: true, message: "Password changed succesfully" });
 };
 
 //@Method:PUT auth/edit
