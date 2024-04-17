@@ -29,15 +29,21 @@
         font-size: 1.2rem;
       }
       footer {
-        display: flex;
         background-color: #615c94;
         color: white;
-        position: absolute;
-        bottom: 0;
-        align-items: center;
-        justify-content: center;
         padding: 20px;
         width: 100%;
+        text-align: center;
+      }
+
+      /* Responsive Styles */
+      @media only screen and (max-width: 600px) {
+        h1 {
+          font-size: 2rem;
+        }
+        p {
+          font-size: 1rem;
+        }
       }
     </style>
   </head>
