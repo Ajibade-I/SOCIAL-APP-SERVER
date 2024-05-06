@@ -449,13 +449,15 @@ const deleteMesaage = async (req, res) => {
   res.status(200).json({ message: "Message deleted succesfully" });
 };
 
-module.exports.message = message;
-module.exports.getMessages = getMessages;
-module.exports.createGroup = createGroup;
-module.exports.messageGroup = messageGroup;
-module.exports.sharePost = sharePost;
-module.exports.removeFromGroup = removeFromGroup;
-module.exports.addToGroup = addToGroup;
-module.exports.deleteMesaage = deleteMesaage;
-module.exports.makeAnAdmin = makeAnAdmin;
-module.exports.leaveGroup = leaveGroup;
+module.exports = {
+  message,
+  getMessages,
+  createGroup,
+  messageGroup,
+  sharePost,
+  removeFromGroup,
+  addToGroup,
+  deleteMesaage,
+  makeAnAdmin,
+  leaveGroup,
+};

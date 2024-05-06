@@ -185,7 +185,7 @@ const findProfile = async (req, res, next) => {
   //find user
   const user = await User.findOne({
     "profile.userName": { $regex: new RegExp(userName, "i") },
-  }); 
+  });
   if (!user) {
     throw new BadRequestError("Invalid username");
   }
@@ -319,11 +319,13 @@ const editProfile = async (req, res, next) => {
   return succesResponse(res, "Account updated succesfully");
 };
 
-module.exports.myProfile = myProfile;
-module.exports.findProfile = findProfile;
-module.exports.followProfile = followProfile;
-module.exports.viewFollowing = viewFollowing;
-module.exports.viewFollowers = viewFollowers;
-module.exports.editProfile = editProfile;
-module.exports.viewFollowRequests = viewFollowRequests;
-module.exports.followRequestAction = followRequestAction;
+module.exports = {
+  myProfile,
+  findProfile,
+  followProfile,
+  viewFollowing,
+  viewFollowers,
+  editProfile,
+  viewFollowRequests,
+  followRequestAction,
+};

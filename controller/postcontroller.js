@@ -161,8 +161,4 @@ const deletePost = async (req, res, next) => {
   res.status(200).json({ message: "Post deleted" });
 };
 
-module.exports.post = post;
-module.exports.likePost = likePost;
-module.exports.commentOnPost = commentOnPost;
-module.exports.deleteComment = deleteComment;
-module.exports.deletePost = deletePost;
+module.exports = { post, likePost, commentOnPost, deleteComment, deletePost };

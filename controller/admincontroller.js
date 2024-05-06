@@ -185,10 +185,12 @@ const getAllPosts = async (req, res) => {
   return succesResponse(res, "", posts);
 };
 
-module.exports.adminSignUp = adminSignUp;
-module.exports.getAllUsers = getAllUsers;
-module.exports.suspendUser = suspendUser;
-module.exports.activateUser = activateUser;
-module.exports.getSuspendedUsers = getSuspendedUsers;
-module.exports.getAllPosts = getAllPosts;
-module.exports.deletePost = deletePost;
+module.exports = {
+  adminSignUp,
+  getAllUsers,
+  suspendUser,
+  activateUser,
+  getSuspendedUsers,
+  getAllPosts,
+  deletePost,
+};

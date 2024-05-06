@@ -76,5 +76,5 @@ const viewPostsByTopic = async (req, res, next) => {
   }
   return succesResponse(res, "WELCOME TO THE COMMUNITY", posts);
 };
-module.exports.homePage = homePage;
-module.exports.viewPostsByTopic = viewPostsByTopic;
+
+module.exports = { homePage, viewPostsByTopic };

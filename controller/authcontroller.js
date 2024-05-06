@@ -26,7 +26,7 @@ const { succesResponse } = require("../lib/helpers/utility-functions");
 //@Desc:To signup a user
 //@Access:Public
 
-const SignUp = async (req, res, next) => {
+const SignUp = async (req, res) => {
   //validate request
   const error = await validateSignup(req.body);
   if (error) {
@@ -371,13 +371,15 @@ const blockAccount = async (req, res, next) => {
   return succesResponse(res, "User blocked");
 };
 
-module.exports.SignUp = SignUp;
-module.exports.Login = Login;
-module.exports.logOut = logOut;
-module.exports.activateAccount = activateAccount;
-module.exports.forgotPassword = forgotPassword;
-module.exports.resetPassword = resetPassword;
-module.exports.resetPasswordLoggedIn = resetPasswordLoggedIn;
-module.exports.editAccount = editAccount;
-module.exports.blockAccount = blockAccount;
-module.exports.deleteAccount = deleteAccount;
+module.exports = {
+  SignUp,
+  Login,
+  logOut,
+  activateAccount,
+  forgotPassword,
+  resetPassword,
+  resetPasswordLoggedIn,
+  editAccount,
+  blockAccount,
+  deleteAccount,
+};
