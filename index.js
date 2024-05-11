@@ -7,6 +7,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const port = process.env.PORT || 5400;
 const path = require("path");
+const cors = require("cors");
 
 const { notFound, errorHandler } = require("./lib/midlleware/error-middleware");
 const {
@@ -18,8 +19,10 @@ const {
   adminRoutes,
 } = require("./routes");
 const accesslogs = require("./lib/midlleware/accesslogs");
+const corsOptions = require("./lib/helpers/corsOptions");
 const app = express();
 
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_PRIVATE_KEY));
 
